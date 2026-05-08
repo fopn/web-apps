@@ -197,14 +197,25 @@ define([
             // Host (Nextcloud) tells us whether the Assistant app is loaded.
             // Drives visibility of the "Ask Nextcloud Assistant" context-menu
             // entry in the textMenu (see DocumentHolderExt.js initMenu).
-            Common.Gateway.on('setassistantavailable', _.bind(this.onSetAssistantAvailable, this));
+            // Use a closure that re-looks up the view through the controller
+            // getter on each event to be robust against lifecycle ordering
+            // (a stale this.documentHolder, view recreation, or a setApi
+            // call that fires before the view is wired).
+            Common.Gateway.on('setassistantavailable', function(available) {
+                var view = DE.getController('DocumentHolder').documentHolder;
+                if (view) {
+                    view.ncAssistantAvailable = !!available;
+                }
+            });
 
             return this;
         },
 
         onSetAssistantAvailable: function(available) {
-            if (this.documentHolder) {
-                this.documentHolder.ncAssistantAvailable = !!available;
+            // Kept for callers that target the controller method directly.
+            var view = DE.getController('DocumentHolder').documentHolder;
+            if (view) {
+                view.ncAssistantAvailable = !!available;
             }
         },
 

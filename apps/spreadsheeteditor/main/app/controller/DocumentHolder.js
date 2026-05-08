@@ -208,18 +208,27 @@ define([
             }
             // Host (Nextcloud) tells us whether the Assistant app is loaded.
             // Drives visibility of the "Ask Nextcloud Assistant" entry in the
-            // cell context menu.
-            Common.Gateway.on('setassistantavailable', _.bind(this.onSetAssistantAvailable, this));
+            // cell context menu. Look up the view through the controller
+            // getter on each event so a stale this.documentHolder doesn't
+            // break propagation.
+            Common.Gateway.on('setassistantavailable', function(available) {
+                var view = SSE.getController('DocumentHolder').documentHolder;
+                if (view) {
+                    view.ncAssistantAvailable = !!available;
+                }
+            });
             return this;
         },
 
         onSetAssistantAvailable: function(available) {
-            // Stash the flag on the view; the ssMenu's show:before listener
-            // reads it on each open. Calling setVisible here doesn't work
-            // because Common.UI.MenuItem.setVisible only behaves correctly
-            // while the menu is being rendered.
-            if (this.documentHolder) {
-                this.documentHolder.ncAssistantAvailable = !!available;
+            // Kept for callers that target the controller method directly.
+            // The ssMenu's show:before listener reads ncAssistantAvailable on
+            // each open. Calling setVisible here doesn't work because
+            // Common.UI.MenuItem.setVisible only behaves correctly while the
+            // menu is being rendered.
+            var view = SSE.getController('DocumentHolder').documentHolder;
+            if (view) {
+                view.ncAssistantAvailable = !!available;
             }
         },
 

@@ -203,20 +203,24 @@ define([
 
             // Host (Nextcloud) tells us whether the Assistant app is loaded.
             // Drives visibility of the "Ask Nextcloud Assistant" entry in the
-            // text context menu.
-            Common.Gateway.on('setassistantavailable', _.bind(me.onSetAssistantAvailable, me));
+            // text context menu. Use a closure that re-looks up the view
+            // through the controller getter on each event so a stale
+            // this.documentHolder doesn't break propagation.
+            Common.Gateway.on('setassistantavailable', function(available) {
+                var view = PE.getController('DocumentHolder').documentHolder;
+                if (view) {
+                    view.ncAssistantAvailable = !!available;
+                }
+            });
 
             return me;
         },
 
         onSetAssistantAvailable: function(available) {
-            // Stash the flag on the view; textMenu's initMenu callback reads
-            // it on each open and toggles visibility. We don't call setVisible
-            // here because Common.UI.MenuItem.setVisible only behaves
-            // correctly while the menu is being rendered (i.e. inside
-            // initMenu).
-            if (this.documentHolder) {
-                this.documentHolder.ncAssistantAvailable = !!available;
+            // Kept for callers that target the controller method directly.
+            var view = PE.getController('DocumentHolder').documentHolder;
+            if (view) {
+                view.ncAssistantAvailable = !!available;
             }
         },
 
