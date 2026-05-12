@@ -1979,8 +1979,11 @@ define([], function () {
                     }
 
                     // Nextcloud Assistant entry — show only when the host has
-                    // announced the Assistant app is available.
-                    var assistantVisible = !!me.ncAssistantAvailable;
+                    // announced the Assistant app is available AND the
+                    // document allows copying out (restricted/secure view
+                    // disables copy, and the Assistant reads the selected
+                    // text via asc_GetSelectedText to forward it to the host).
+                    var assistantVisible = !!me.ncAssistantAvailable && cancopy;
                     me.menuParaAssistantSeparator.setVisible(assistantVisible);
                     me.menuParaAssistant.setVisible(assistantVisible);
                 },

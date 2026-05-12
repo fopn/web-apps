@@ -2502,10 +2502,11 @@ define([], function () {
                     /** coauthoring end **/
 
                     // Nextcloud Assistant entry — show only when the host has
-                    // announced the Assistant app is available; otherwise the
-                    // separator + item stay hidden so the menu looks
-                    // unchanged for users without the integration.
-                    var assistantVisible = !!me.ncAssistantAvailable;
+                    // announced the Assistant app is available AND the
+                    // document allows copying out (restricted/secure view
+                    // disables copy, and the Assistant reads the selected
+                    // text via asc_GetSelectedText to forward it to the host).
+                    var assistantVisible = !!me.ncAssistantAvailable && cancopy;
                     menuParaAssistantSeparator.setVisible(assistantVisible);
                     me.menuParaAssistant.setVisible(assistantVisible);
 

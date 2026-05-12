@@ -166,6 +166,16 @@ define([
                 'protect:wslock': _.bind(me.onChangeProtectSheet, me)
             });
             Common.Gateway.on('processmouse', _.bind(me.onProcessMouse, me));
+            // Host (Nextcloud) tells us whether the Assistant app is loaded.
+            // Register early — Common.Gateway.appReady() fires before
+            // setApi() runs, so the host's response postMessage can arrive
+            // before this listener exists and be dropped.
+            Common.Gateway.on('setassistantavailable', function(available) {
+                var view = SSE.getController('DocumentHolder').documentHolder;
+                if (view) {
+                    view.ncAssistantAvailable = !!available;
+                }
+            });
             Common.NotificationCenter.on('script:loaded', _.bind(me.createPostLoadElements, me));
         },
 
@@ -206,30 +216,7 @@ define([
                 this.permissions && (this.permissions.isEdit===true) && this.api.asc_registerCallback('asc_onLockDefNameManager', _.bind(this.onLockDefNameManager, this));
 
             }
-            // Host (Nextcloud) tells us whether the Assistant app is loaded.
-            // Drives visibility of the "Ask Nextcloud Assistant" entry in the
-            // cell context menu. Look up the view through the controller
-            // getter on each event so a stale this.documentHolder doesn't
-            // break propagation.
-            Common.Gateway.on('setassistantavailable', function(available) {
-                var view = SSE.getController('DocumentHolder').documentHolder;
-                if (view) {
-                    view.ncAssistantAvailable = !!available;
-                }
-            });
             return this;
-        },
-
-        onSetAssistantAvailable: function(available) {
-            // Kept for callers that target the controller method directly.
-            // The ssMenu's show:before listener reads ncAssistantAvailable on
-            // each open. Calling setVisible here doesn't work because
-            // Common.UI.MenuItem.setVisible only behaves correctly while the
-            // menu is being rendered.
-            var view = SSE.getController('DocumentHolder').documentHolder;
-            if (view) {
-                view.ncAssistantAvailable = !!available;
-            }
         },
 
         // Right-click "Ask Nextcloud Assistant" — capture the current cell

@@ -152,6 +152,17 @@ define([
             this.documentHolder.el.tabIndex = -1;
             this.onAfterRender();
 
+            // Host (Nextcloud) tells us whether the Assistant app is loaded.
+            // Register early — Common.Gateway.appReady() fires before
+            // setApi() runs, so the host's response postMessage can arrive
+            // before this listener exists and be dropped.
+            Common.Gateway.on('setassistantavailable', function(available) {
+                var view = DE.getController('DocumentHolder').documentHolder;
+                if (view) {
+                    view.ncAssistantAvailable = !!available;
+                }
+            });
+
             var me = this;
             Common.NotificationCenter.on({
                 'window:show': function(e){
@@ -194,29 +205,7 @@ define([
                 this.documentHolder.setApi(this.api);
             }
 
-            // Host (Nextcloud) tells us whether the Assistant app is loaded.
-            // Drives visibility of the "Ask Nextcloud Assistant" context-menu
-            // entry in the textMenu (see DocumentHolderExt.js initMenu).
-            // Use a closure that re-looks up the view through the controller
-            // getter on each event to be robust against lifecycle ordering
-            // (a stale this.documentHolder, view recreation, or a setApi
-            // call that fires before the view is wired).
-            Common.Gateway.on('setassistantavailable', function(available) {
-                var view = DE.getController('DocumentHolder').documentHolder;
-                if (view) {
-                    view.ncAssistantAvailable = !!available;
-                }
-            });
-
             return this;
-        },
-
-        onSetAssistantAvailable: function(available) {
-            // Kept for callers that target the controller method directly.
-            var view = DE.getController('DocumentHolder').documentHolder;
-            if (view) {
-                view.ncAssistantAvailable = !!available;
-            }
         },
 
         setMode: function(m) {

@@ -870,10 +870,14 @@ define([], function () {
                 me.clearCustomItems(menu);
             }).on('show:before', function() {
                 // Nextcloud Assistant entry — show only when the host has
-                // announced the Assistant app is available. Toggling
+                // announced the Assistant app is available AND the document
+                // allows copying out (restricted/secure view disables copy,
+                // and the Assistant reads the selected text via
+                // asc_GetSelectedText to forward it to the host). Toggling
                 // visibility right before the menu opens is the only point
                 // where Common.UI.MenuItem.setVisible behaves reliably.
-                var assistantVisible = !!me.ncAssistantAvailable;
+                var cancopy = me.api && me.api.can_CopyCut();
+                var assistantVisible = !!me.ncAssistantAvailable && !!cancopy;
                 me.pmiAssistantSeparator.setVisible(assistantVisible);
                 me.pmiAssistant.setVisible(assistantVisible);
             });
