@@ -201,7 +201,7 @@ define([
                     autoWidth:       true,
                     itemTemplate: _.template([
                         '<div  class = "btn_item x-huge" id = "<%= id %>" style = "width: ' + itemWidth + 'px;height: ' + itemHeight + 'px;">',
-                            '<div class = "icon toolbar__icon <%= iconCls %>"></div>',
+                            '<svg class="icon uni-scale"><use href="#<%= iconCls %>"></use></svg>',
                             '<div class = "caption"><%= displayValue %></div>',
                         '</div>'
                     ].join('')),
@@ -513,7 +513,7 @@ define([
                             store: new Common.UI.DataViewStore(Common.define.effectData.getEffectData()),
                             itemTemplate: _.template([
                                 '<div  class = "btn_item x-huge" id = "<%= id %>" style = "width: ' + itemWidth + 'px;height: ' + itemHeight + 'px;">',
-                                    '<div class = "icon toolbar__icon <%= iconCls %>"></div>',
+                                    '<svg class="icon uni-scale"><use href="#<%= iconCls %>"></use></svg>',
                                     '<div class = "caption"><%= displayValue %></div>',
                                 '</div>'
                             ].join(''))
