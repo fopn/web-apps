@@ -1551,6 +1551,18 @@ define([
                     dataHintOffset: 'small'
                 });
 
+                me.btnSmartPicker = new Common.UI.Button({
+                    id: 'tlbtn-smartpicker',
+                    cls: 'btn-toolbar x-huge icon-top',
+                    iconCls: 'toolbar__icon btn-smart-picker',
+                    lock: [_set.lostConnect, _set.disableOnStart, _set.viewMode],
+                    caption: me.capSmartPicker,
+                    action: 'smart-picker',
+                    dataHint: '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: 'small'
+                });
+
                 me.listStyles = new Common.UI.ComboDataView({
                     cls             : 'combo-cell-styles',
                     enableKeyEvents : true,
@@ -2624,6 +2636,7 @@ define([
             _injectComponent('#slot-btn-text-orient',    this.btnTextOrient);
             _injectComponent('#slot-btn-insimage',       this.btnInsertImage);
             _injectComponent('#slot-btn-instable',       this.btnInsertTable);
+            _injectComponent('#slot-btn-smartpicker',    this.btnSmartPicker);
             _injectComponent('#slot-btn-inshyperlink',   this.btnInsertHyperlink);
             _injectComponent('#slot-btn-insshape',       this.btnInsertShape);
             _injectComponent('#slot-btn-instext',        this.btnInsertText);
@@ -2712,6 +2725,7 @@ define([
             _updateHint(this.btnWrap, this.tipWrap);
             _updateHint(this.btnTextOrient, this.tipTextOrientation);
             _updateHint(this.btnInsertTable, this.tipInsertTable);
+            _updateHint(this.btnSmartPicker, this.tipSmartPicker);
             _updateHint(this.btnInsertImage, this.tipInsertImage);
             _updateHint(this.btnInsertChart, this.tipInsertChartSpark);
             _updateHint(this.btnInsertChartRecommend, this.tipInsertChartRecommend);

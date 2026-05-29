@@ -426,11 +426,8 @@ define([
             toolbar.styleMenu.on('hide:before',                         _.bind(this.onListStyleBeforeHide, this));
             toolbar.btnInsertEquation.on('click',                       _.bind(this.onInsertEquationClick, this));
             toolbar.btnInsertSymbol.menu.items[2].on('click',           _.bind(this.onInsertSymbolClick, this));
-            toolbar.mnuInsertSymbolsPicker.on('item:click',             _.bind(this.onInsertSymbolItemClick, this));
-            toolbar.mnuNoControlsColor.on('click',                      _.bind(this.onNoControlsColor, this));
-            toolbar.mnuControlsColorPicker.on('select',                 _.bind(this.onSelectControlsColor, this));
-            toolbar.btnLineNumbers.menu.on('item:click',                _.bind(this.onLineNumbersSelect, this));
-            toolbar.btnLineNumbers.menu.on('show:after',                _.bind(this.onLineNumbersShow, this));
+            toolbar.btnSmartPicker.on('click',                          _.bind(this.onSmartPickerClick, this));
+
             toolbar.btnHyphenation.menu.on('item:click',                _.bind(this.onHyphenationSelect, this));
             toolbar.btnHyphenation.menu.on('show:after',                _.bind(this.onHyphenationShow, this));
             Common.Gateway.on('insertimage',                      _.bind(this.insertImage, this));
@@ -3466,6 +3463,12 @@ define([
             !specCharacter && this.toolbar.saveSymbol(symbol, font);
         },
 
+        onSmartPickerClick: function() {
+            if (this.api && typeof this.api['asc_GetSelectedText'] === 'function') {
+                Common.Gateway.requestSmartPicker(this.api['asc_GetSelectedText']() || '');
+            }
+        },
+
         onApiMathTypes: function(equation) {
             this._equationTemp = equation;
             var me = this;
@@ -3904,6 +3907,21 @@ define([
             Common.Utils.InternalSettings.set('toolbar-active-tab', !editmode && !compactview);
 
             me.toolbar.render(_.extend({isCompactView: editmode ? compactview : true}, config));
+
+            // Smart Picker button visibility: show when EnableRemoteLinkPicker is true (WOPI cap)
+            // and ncAssistantAvailable is true (host announced Assistant app is loaded).
+            if (me.toolbar.btnSmartPicker) {
+                var smartPickerVisible = !!(config.EnableRemoteLinkPicker && me.toolbar.ncAssistantAvailable);
+                me.toolbar.btnSmartPicker.setVisible(smartPickerVisible);
+            }
+
+            // Listen for Assistant availability changes from the host
+            Common.Gateway.on('setassistantavailable', function(available) {
+                if (me.toolbar.btnSmartPicker && config.EnableRemoteLinkPicker) {
+                    me.toolbar.ncAssistantAvailable = !!available;
+                    me.toolbar.btnSmartPicker.setVisible(!!available);
+                }
+            });
 
             var tab = {action: 'review', caption: me.toolbar.textTabCollaboration, dataHintTitle: 'U', layoutname: 'toolbar-collaboration'};
             var $panel = me.application.getController('Common.Controllers.ReviewChanges').createToolbarPanel();

@@ -436,6 +436,7 @@ define([
                 toolbar.btnWrap.on('click',                                 _.bind(this.onWrap, this));
                 toolbar.btnTextOrient.menu.on('item:click',                 _.bind(this.onTextOrientationMenu, this));
                 toolbar.btnInsertTable.on('click',                          _.bind(this.onBtnInsertTableClick, this));
+                toolbar.btnSmartPicker.on('click',                          _.bind(this.onSmartPickerClick, this));
                 toolbar.btnInsertImage.menu.on('item:click',                _.bind(this.onInsertImageMenu, this));
                 toolbar.btnInsertHyperlink.on('click',                      _.bind(this.onHyperlink, this));
                 toolbar.btnInsertText.on('click',                           _.bind(this.onBtnInsertTextClick, this));
@@ -1062,6 +1063,12 @@ define([
                 this._setTableFormat(this.api.asc_getDefaultTableStyle());
             Common.NotificationCenter.trigger('edit:complete', this.toolbar);
             Common.component.Analytics.trackEvent('ToolBar', 'Table');
+        },
+
+        onSmartPickerClick: function() {
+            if (this.api && typeof this.api['asc_GetSelectedText'] === 'function') {
+                Common.Gateway.requestSmartPicker(this.api['asc_GetSelectedText']() || '');
+            }
         },
 
         onBtnPasteOptionsClick: function (btn, e) {
@@ -4961,6 +4968,21 @@ define([
             }
 
             me.toolbar.render(_.extend({isCompactView: editmode ? compactview : true}, config));
+
+            // Smart Picker button visibility: show when EnableRemoteLinkPicker is true (WOPI cap)
+            // and ncAssistantAvailable is true (host announced Assistant app is loaded).
+            if (me.toolbar.btnSmartPicker) {
+                var smartPickerVisible = !!(config.EnableRemoteLinkPicker && me.toolbar.ncAssistantAvailable);
+                me.toolbar.btnSmartPicker.setVisible(smartPickerVisible);
+            }
+
+            // Listen for Assistant availability changes from the host
+            Common.Gateway.on('setassistantavailable', function(available) {
+                if (me.toolbar.btnSmartPicker && config.EnableRemoteLinkPicker) {
+                    me.toolbar.ncAssistantAvailable = !!available;
+                    me.toolbar.btnSmartPicker.setVisible(!!available);
+                }
+            });
 
             if ( !config.isEditDiagram && !config.isEditMailMerge && !config.isEditOle ) {
                 var tab = {action: 'review', caption: me.toolbar.textTabCollaboration, layoutname: 'toolbar-collaboration', dataHintTitle: 'U'};
