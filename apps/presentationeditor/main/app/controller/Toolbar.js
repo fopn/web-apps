@@ -2819,26 +2819,22 @@ define([
                 }
 
                 if ( config.canProtect ) {
+                    // Common.Controllers.Protection.setMode() is always called now (see Main.js),
+                    // so createToolbarPanel() always returns a valid <section> wrapper.
+                    // This mirrors the DE pattern exactly.
                     var dpController  = me.getApplication().getController('DocProtection'),
                         hasOwnerPanel = !!(dpController && dpController.view);
 
-                    if (hasOwnerPanel) {
-                        // Browser-mode owner panel: build a proper <section class="panel"> wrapper
-                        // ourselves so addTab works correctly. Do NOT rely on Common.Controllers.Protection
-                        // which may have no view (setMode is only called when signature/password support exists).
+                    $panel = me.getApplication().getController('Common.Controllers.Protection').createToolbarPanel();
+                    if ($panel && hasOwnerPanel) {
                         tab = {action: 'protect', caption: me.toolbar.textTabProtect, layoutname: 'toolbar-protect', dataHintTitle: 'T'};
-                        $panel = $('<section id="protection-panel" class="panel" data-tab="protect" role="tabpanel" aria-labelledby="protect"></section>');
                         $panel.append(dpController.createToolbarPanel());
                         me.toolbar.addTab(tab, $panel, 8);
                         me.toolbar.setVisible('protect', Common.UI.LayoutManager.isElementVisible('toolbar-protect'));
-                    } else if (config.isDesktopApp && (config.isSignatureSupport || config.isPasswordSupport)) {
-                        // Desktop-only native protection (Encrypt/Signature) — no owner panel
+                    } else if ($panel && config.isDesktopApp && (config.isSignatureSupport || config.isPasswordSupport)) {
                         tab = {action: 'protect', caption: me.toolbar.textTabProtect, layoutname: 'toolbar-protect', dataHintTitle: 'T'};
-                        $panel = me.getApplication().getController('Common.Controllers.Protection').createToolbarPanel();
-                        if ($panel) {
-                            me.toolbar.addTab(tab, $panel, 8);
-                            me.toolbar.setVisible('protect', Common.UI.LayoutManager.isElementVisible('toolbar-protect'));
-                        }
+                        me.toolbar.addTab(tab, $panel, 8);
+                        me.toolbar.setVisible('protect', Common.UI.LayoutManager.isElementVisible('toolbar-protect'));
                     }
                 }
 

@@ -1567,8 +1567,13 @@ define([
                     fontsControllers    && fontsControllers.setApi(me.api);
                     rightmenuController && rightmenuController.setApi(me.api);
 
+                    // Always call setMode so the Protection view/panel wrapper is created —
+                    // the Toolbar needs it as an anchor for addTab even in browser mode.
+                    // Only wire API callbacks (setConfig) when signature/password is supported.
+                    var protCtrl = application.getController('Common.Controllers.Protection');
+                    protCtrl.setMode(me.appOptions);
                     if (me.appOptions.isSignatureSupport || me.appOptions.isPasswordSupport)
-                        application.getController('Common.Controllers.Protection').setMode(me.appOptions).setConfig({config: me.editorConfig}, me.api);
+                        protCtrl.setConfig({config: me.editorConfig}, me.api);
 
                     // FileOpen owner access-restriction controls (Allow Editing/Printing/Save Copy)
                     application.getController('DocProtection').setMode(me.appOptions).setConfig({config: me.editorConfig}, me.api);
