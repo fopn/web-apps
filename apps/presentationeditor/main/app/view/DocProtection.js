@@ -1,48 +1,29 @@
 /*
  *  DocProtection.js (presentationeditor)
  *
- *  FileOpen owner access-restriction controls for the Protection tab.
- *  Presentation editor has no native "Protect Document" feature, so this view
- *  renders ONLY the owner-only buttons (Allow Editing / Allow Printing /
- *  Allow Save Copy). It mirrors the documenteditor implementation.
- *
- *  When the file owner toggles a button, the editor posts a message to the
- *  parent Nextcloud page (fo-fileperms.js relay), which persists the per-file
- *  permissions. Enforcement for non-owners happens server-side.
+ *  FileOpen owner access-restriction controls — compact dot-list UI.
+ *  Dot ON (red) = restriction is active for shared users.
+ *  Dot OFF (grey outline) = no restriction (default).
  */
 define([
     'common/main/lib/util/utils',
     'common/main/lib/component/BaseView',
     'common/main/lib/component/Layout'
-], function (template) {
+], function () {
     'use strict';
+
+    var DOT_OFF = 'display:inline-block;width:9px;height:9px;border-radius:50%;border:2px solid #888888;box-sizing:border-box;flex-shrink:0;margin-top:1px;';
+    var DOT_ON  = 'display:inline-block;width:9px;height:9px;border-radius:50%;background:#D84315;border:2px solid #D84315;box-sizing:border-box;flex-shrink:0;margin-top:1px;'; // orange — presentation
+    var ROW_CSS = 'display:flex;align-items:flex-start;gap:7px;cursor:pointer;padding:3px 2px;border-radius:3px;';
+    var TXT_CSS = 'font-size:11px;line-height:1.3;white-space:nowrap;user-select:none;';
 
     PE.Views.DocProtection = Common.UI.BaseView.extend(_.extend((function(){
         var template =
-            '<div id="fo-owner-group" class="group">' +
-            '<span id="slot-btn-allow-edit"     class="btn-slot text x-huge"></span>' +
-            '<span id="slot-btn-allow-print"    class="btn-slot text x-huge"></span>' +
-            '<span id="slot-btn-allow-download" class="btn-slot text x-huge"></span>' +
+            '<div id="fo-owner-group" class="group" style="flex-direction:column;justify-content:center;padding:0 10px;gap:2px;min-width:148px;">' +
+            '<div class="fo-perm-row" data-perm="edit"     style="' + ROW_CSS + '"><span class="fo-perm-dot" style="' + DOT_OFF + '"></span><span style="' + TXT_CSS + '">Restrict Editing</span></div>' +
+            '<div class="fo-perm-row" data-perm="print"    style="' + ROW_CSS + '"><span class="fo-perm-dot" style="' + DOT_OFF + '"></span><span style="' + TXT_CSS + '">Restrict Printing</span></div>' +
+            '<div class="fo-perm-row" data-perm="download" style="' + ROW_CSS + '"><span class="fo-perm-dot" style="' + DOT_OFF + '"></span><span style="' + TXT_CSS + '">Restrict Save Copy</span></div>' +
             '</div>';
-
-        function setEvents() {
-            var me = this;
-            if (me._foPerms) {
-                function notifyParent() {
-                    var msg = {
-                        type         : 'fo:savePerms',
-                        allowEdit    : me.btnAllowEdit     ? me.btnAllowEdit.pressed     : true,
-                        allowPrint   : me.btnAllowPrint    ? me.btnAllowPrint.pressed    : true,
-                        allowDownload: me.btnAllowDownload ? me.btnAllowDownload.pressed : true
-                    };
-                    try { window.parent.postMessage(msg, '*'); } catch(e) {}
-                }
-                me.btnAllowEdit     && me.btnAllowEdit.on('click',     notifyParent);
-                me.btnAllowPrint    && me.btnAllowPrint.on('click',    notifyParent);
-                me.btnAllowDownload && me.btnAllowDownload.on('click', notifyParent);
-            }
-            me._isSetEvents = true;
-        }
 
         return {
 
@@ -51,93 +32,75 @@ define([
             initialize: function (options) {
                 Common.UI.BaseView.prototype.initialize.call(this, options);
 
-                this.appConfig = options.mode || {};   // may be constructed without mode for non-owners
+                this.appConfig   = options.mode || {};
                 this.lockedControls = [];
-                this._state = {disabled: false};
+                this._state      = {disabled: false};
 
                 var foPerms = this.appConfig.customization && this.appConfig.customization.foOwnerPerms;
                 if (foPerms && foPerms.isOwner) {
-                    this._foPerms = foPerms;
-
-                    this.btnAllowEdit = new Common.UI.Button({
-                        cls           : 'btn-toolbar x-huge icon-top',
-                        iconCls       : 'toolbar__icon btn-edit',
-                        enableToggle  : true,
-                        allowDepress  : true,
-                        pressed       : foPerms.allowEdit !== false,
-                        caption       : this.txtAllowEdit,
-                        dataHint      : '1',
-                        dataHintDirection: 'bottom',
-                        dataHintOffset: 'small'
-                    });
-                    this.lockedControls.push(this.btnAllowEdit);
-
-                    this.btnAllowPrint = new Common.UI.Button({
-                        cls           : 'btn-toolbar x-huge icon-top',
-                        iconCls       : 'toolbar__icon btn-print',
-                        enableToggle  : true,
-                        allowDepress  : true,
-                        pressed       : foPerms.allowPrint !== false,
-                        caption       : this.txtAllowPrint,
-                        dataHint      : '1',
-                        dataHintDirection: 'bottom',
-                        dataHintOffset: 'small'
-                    });
-                    this.lockedControls.push(this.btnAllowPrint);
-
-                    this.btnAllowDownload = new Common.UI.Button({
-                        cls           : 'btn-toolbar x-huge icon-top',
-                        iconCls       : 'toolbar__icon btn-download',
-                        enableToggle  : true,
-                        allowDepress  : true,
-                        pressed       : foPerms.allowDownload !== false,
-                        caption       : this.txtAllowDownload,
-                        dataHint      : '1',
-                        dataHintDirection: 'bottom',
-                        dataHintOffset: 'small'
-                    });
-                    this.lockedControls.push(this.btnAllowDownload);
+                    this._foPerms        = foPerms;
+                    this._restrictEdit     = (foPerms.allowEdit     === false);
+                    this._restrictPrint    = (foPerms.allowPrint    === false);
+                    this._restrictDownload = (foPerms.allowDownload === false);
                 }
 
                 Common.UI.LayoutManager.addControls(this.lockedControls);
                 Common.NotificationCenter.on('app:ready', this.onAppReady.bind(this));
             },
 
-            render: function (el) {
-                return this;
-            },
+            render: function (el) { return this; },
 
-            onAppReady: function (config) {
-                var me = this;
-                (new Promise(function (accept) { accept(); })).then(function(){
-                    setEvents.call(me);
-                });
-            },
+            onAppReady: function (config) { /* nothing needed */ },
 
             getPanel: function () {
-                this.$el = $(_.template(template)( {} ));
+                this.$el = $(_.template(template)({}));
+                var me   = this;
+
                 if (this._foPerms) {
-                    this.btnAllowEdit     && this.btnAllowEdit.render(this.$el.filter('#fo-owner-group').find('#slot-btn-allow-edit'));
-                    this.btnAllowPrint    && this.btnAllowPrint.render(this.$el.filter('#fo-owner-group').find('#slot-btn-allow-print'));
-                    this.btnAllowDownload && this.btnAllowDownload.render(this.$el.filter('#fo-owner-group').find('#slot-btn-allow-download'));
+                    // #fo-owner-group is the root element — use .filter()
+                    var $group = this.$el.filter('#fo-owner-group');
+                    this._updateDots($group);
+
+                    $group.find('.fo-perm-row').on('click', function () {
+                        var perm = $(this).data('perm');
+                        if      (perm === 'edit')     me._restrictEdit     = !me._restrictEdit;
+                        else if (perm === 'print')    me._restrictPrint    = !me._restrictPrint;
+                        else if (perm === 'download') me._restrictDownload = !me._restrictDownload;
+                        me._updateDots($group);
+                        me._notifyParent();
+                    });
                 }
+
                 return this.$el;
             },
 
-            getButtons: function(type) {
-                if (type===undefined)
-                    return this.lockedControls;
+            _updateDots: function ($group) {
+                var OFF = 'display:inline-block;width:9px;height:9px;border-radius:50%;border:2px solid #888888;box-sizing:border-box;flex-shrink:0;margin-top:1px;';
+                var ON  = 'display:inline-block;width:9px;height:9px;border-radius:50%;background:#D84315;border:2px solid #D84315;box-sizing:border-box;flex-shrink:0;margin-top:1px;'; // orange — presentation
+                $group.find('[data-perm="edit"]     .fo-perm-dot').attr('style', this._restrictEdit     ? ON : OFF);
+                $group.find('[data-perm="print"]    .fo-perm-dot').attr('style', this._restrictPrint    ? ON : OFF);
+                $group.find('[data-perm="download"] .fo-perm-dot').attr('style', this._restrictDownload ? ON : OFF);
+            },
+
+            _notifyParent: function () {
+                var msg = {
+                    type         : 'fo:savePerms',
+                    allowEdit    : !this._restrictEdit,
+                    allowPrint   : !this._restrictPrint,
+                    allowDownload: !this._restrictDownload
+                };
+                try { window.parent.postMessage(msg, '*'); } catch(e) {}
+            },
+
+            getButtons: function (type) {
+                if (type === undefined) return this.lockedControls;
                 return [];
             },
 
             show: function () {
                 Common.UI.BaseView.prototype.show.call(this);
                 this.fireEvent('show', this);
-            },
-
-            txtAllowEdit          : 'Allow Editing',
-            txtAllowPrint         : 'Allow Printing',
-            txtAllowDownload      : 'Allow Save Copy'
+            }
         }
     }()), PE.Views.DocProtection || {}));
 });

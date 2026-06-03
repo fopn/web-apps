@@ -39,43 +39,24 @@ define([
     'use strict';
 
     DE.Views.DocProtection = Common.UI.BaseView.extend(_.extend((function(){
+
+        // ── Styles ───────────────────────────────────────────────────────────
+        var DOT_OFF  = 'display:inline-block;width:9px;height:9px;border-radius:50%;border:2px solid #888888;box-sizing:border-box;flex-shrink:0;margin-top:1px;';
+        var DOT_ON   = 'display:inline-block;width:9px;height:9px;border-radius:50%;background:#2B6CCC;border:2px solid #2B6CCC;box-sizing:border-box;flex-shrink:0;margin-top:1px;'; // blue — document
+        var ROW_CSS  = 'display:flex;align-items:flex-start;gap:7px;cursor:pointer;padding:3px 2px;border-radius:3px;';
+        var TEXT_CSS = 'font-size:11px;line-height:1.3;white-space:nowrap;user-select:none;';
+
         var template =
             '<div class="group">' +
             '<span id="slot-btn-protect-doc" class="btn-slot text x-huge"></span>' +
             '</div>' +
-            // Owner-only access restriction controls — shown only when foOwnerPerms.isOwner is true
+            // Owner-only restriction controls — compact dot-list, hidden until rendered
             '<div id="fo-owner-sep" class="separator long" style="display:none;"></div>' +
-            '<div id="fo-owner-group" class="group" style="display:none;">' +
-            '<span id="slot-btn-allow-edit"     class="btn-slot text x-huge"></span>' +
-            '<span id="slot-btn-allow-print"    class="btn-slot text x-huge"></span>' +
-            '<span id="slot-btn-allow-download" class="btn-slot text x-huge"></span>' +
+            '<div id="fo-owner-group" class="group" style="display:none;flex-direction:column;justify-content:center;padding:0 10px;gap:2px;min-width:148px;">' +
+            '<div class="fo-perm-row" data-perm="edit"     style="' + ROW_CSS + '"><span class="fo-perm-dot" style="' + DOT_OFF + '"></span><span style="' + TEXT_CSS + '">Restrict Editing</span></div>' +
+            '<div class="fo-perm-row" data-perm="print"    style="' + ROW_CSS + '"><span class="fo-perm-dot" style="' + DOT_OFF + '"></span><span style="' + TEXT_CSS + '">Restrict Printing</span></div>' +
+            '<div class="fo-perm-row" data-perm="download" style="' + ROW_CSS + '"><span class="fo-perm-dot" style="' + DOT_OFF + '"></span><span style="' + TEXT_CSS + '">Restrict Save Copy</span></div>' +
             '</div>';
-
-        function setEvents() {
-            var me = this;
-
-            this.btnProtectDoc && this.btnProtectDoc.on('click', function (btn, e) {
-                me.fireEvent('protect:document', [btn.pressed]);
-            });
-
-            // Owner access restriction buttons — notify parent page via postMessage
-            if (me._foPerms) {
-                function notifyParent() {
-                    var msg = {
-                        type         : 'fo:savePerms',
-                        allowEdit    : me.btnAllowEdit     ? me.btnAllowEdit.pressed     : true,
-                        allowPrint   : me.btnAllowPrint    ? me.btnAllowPrint.pressed    : true,
-                        allowDownload: me.btnAllowDownload ? me.btnAllowDownload.pressed : true
-                    };
-                    try { window.parent.postMessage(msg, '*'); } catch(e) {}
-                }
-                me.btnAllowEdit     && me.btnAllowEdit.on('click',     notifyParent);
-                me.btnAllowPrint    && me.btnAllowPrint.on('click',    notifyParent);
-                me.btnAllowDownload && me.btnAllowDownload.on('click', notifyParent);
-            }
-
-            me._isSetEvents = true;
-        }
 
         return {
 
@@ -90,12 +71,10 @@ define([
                 this.lockedControls = [];
                 this._state = {disabled: false, currentProtectHint: this.hintProtectDoc };
 
-                // ── Owner-only: file-level access restriction buttons ────────────
+                // ── Standard "Protect Document" button (non-owners only) ─────
                 var foPerms = this.appConfig.customization && this.appConfig.customization.foOwnerPerms;
 
-                // "Protect Document" locks the doc for EVERYONE including the owner,
-                // so hide it for owners — they use Allow Printing / Allow Save Copy instead.
-                if(!this.appConfig.isPDFForm && !(foPerms && foPerms.isOwner)) {
+                if (!this.appConfig.isPDFForm && !(foPerms && foPerms.isOwner)) {
                     this.btnProtectDoc = new Common.UI.Button({
                         cls: 'btn-toolbar x-huge icon-top',
                         iconCls: 'toolbar__icon btn-restrict-editing',
@@ -108,49 +87,15 @@ define([
                     });
                     this.lockedControls.push(this.btnProtectDoc);
                 }
+
+                // ── Owner restriction state (dot UI — no Button objects) ─────
                 if (foPerms && foPerms.isOwner) {
-                    this._foPerms = foPerms;
-
-                    this.btnAllowEdit = new Common.UI.Button({
-                        cls           : 'btn-toolbar x-huge icon-top',
-                        iconCls       : 'toolbar__icon btn-edit',
-                        enableToggle  : true,
-                        allowDepress  : true,
-                        pressed       : foPerms.allowEdit !== false,
-                        caption       : this.txtAllowEdit,
-                        dataHint      : '1',
-                        dataHintDirection: 'bottom',
-                        dataHintOffset: 'small'
-                    });
-                    this.lockedControls.push(this.btnAllowEdit);
-
-                    this.btnAllowPrint = new Common.UI.Button({
-                        cls           : 'btn-toolbar x-huge icon-top',
-                        iconCls       : 'toolbar__icon btn-print',
-                        enableToggle  : true,
-                        allowDepress  : true,
-                        pressed       : foPerms.allowPrint !== false,
-                        caption       : this.txtAllowPrint,
-                        dataHint      : '1',
-                        dataHintDirection: 'bottom',
-                        dataHintOffset: 'small'
-                    });
-                    this.lockedControls.push(this.btnAllowPrint);
-
-                    this.btnAllowDownload = new Common.UI.Button({
-                        cls           : 'btn-toolbar x-huge icon-top',
-                        iconCls       : 'toolbar__icon btn-download',
-                        enableToggle  : true,
-                        allowDepress  : true,
-                        pressed       : foPerms.allowDownload !== false,
-                        caption       : this.txtAllowDownload,
-                        dataHint      : '1',
-                        dataHintDirection: 'bottom',
-                        dataHintOffset: 'small'
-                    });
-                    this.lockedControls.push(this.btnAllowDownload);
+                    this._foPerms        = foPerms;
+                    // dot ON = restriction is ACTIVE (inverted from allowXxx)
+                    this._restrictEdit     = (foPerms.allowEdit     === false);
+                    this._restrictPrint    = (foPerms.allowPrint    === false);
+                    this._restrictDownload = (foPerms.allowDownload === false);
                 }
-                // ── End owner controls ───────────────────────────────────────────
 
                 Common.UI.LayoutManager.addControls(this.lockedControls);
                 Common.NotificationCenter.on('app:ready', this.onAppReady.bind(this));
@@ -166,33 +111,64 @@ define([
                     accept();
                 })).then(function(){
                     me.btnProtectDoc && me.btnProtectDoc.updateHint(me._state.currentProtectHint, true);
-                    setEvents.call(me);
+                    // wire standard protect button
+                    me.btnProtectDoc && me.btnProtectDoc.on('click', function (btn, e) {
+                        me.fireEvent('protect:document', [btn.pressed]);
+                    });
                 });
             },
 
             getPanel: function () {
                 this.$el = $(_.template(template)( {} ));
+                var me   = this;
 
                 if (this._foPerms) {
-                    // Owner view: hide "Protect Document" group, show only owner controls.
-                    // NOTE: the template yields multiple sibling root nodes, so #fo-owner-group
-                    // is a ROOT of this.$el — jQuery .find() only matches descendants and would
-                    // miss it. Use .filter() to target the root element itself.
-                    this.$el.find('#slot-btn-protect-doc').closest('.group').hide();
-                    this.$el.filter('#fo-owner-group').show();
-                    this.btnAllowEdit     && this.btnAllowEdit.render(this.$el.find('#slot-btn-allow-edit'));
-                    this.btnAllowPrint    && this.btnAllowPrint.render(this.$el.find('#slot-btn-allow-print'));
-                    this.btnAllowDownload && this.btnAllowDownload.render(this.$el.find('#slot-btn-allow-download'));
+                    // #fo-owner-group is a ROOT of $el — must use .filter(), not .find()
+                    var $group = this.$el.filter('#fo-owner-group');
+                    this.$el.filter('#fo-owner-sep').show();
+                    $group.show();
+
+                    // Apply initial dot states
+                    this._updateDots($group);
+
+                    // Click handler — toggle restriction and persist
+                    $group.find('.fo-perm-row').on('click', function () {
+                        var perm = $(this).data('perm');
+                        if      (perm === 'edit')     me._restrictEdit     = !me._restrictEdit;
+                        else if (perm === 'print')    me._restrictPrint    = !me._restrictPrint;
+                        else if (perm === 'download') me._restrictDownload = !me._restrictDownload;
+                        me._updateDots($group);
+                        me._notifyParent();
+                    });
                 } else {
-                    // Non-owner / non-foPerms: show "Protect Document" as normal
                     this.btnProtectDoc && this.btnProtectDoc.render(this.$el.find('#slot-btn-protect-doc'));
                 }
 
                 return this.$el;
             },
 
+            // Update dot fill/outline based on current restriction state
+            _updateDots: function ($group) {
+                var DOT_OFF_S = 'display:inline-block;width:9px;height:9px;border-radius:50%;border:2px solid #888888;box-sizing:border-box;flex-shrink:0;margin-top:1px;';
+                var DOT_ON_S  = 'display:inline-block;width:9px;height:9px;border-radius:50%;background:#2B6CCC;border:2px solid #2B6CCC;box-sizing:border-box;flex-shrink:0;margin-top:1px;'; // blue — document
+                $group.find('[data-perm="edit"]     .fo-perm-dot').attr('style', this._restrictEdit     ? DOT_ON_S : DOT_OFF_S);
+                $group.find('[data-perm="print"]    .fo-perm-dot').attr('style', this._restrictPrint    ? DOT_ON_S : DOT_OFF_S);
+                $group.find('[data-perm="download"] .fo-perm-dot').attr('style', this._restrictDownload ? DOT_ON_S : DOT_OFF_S);
+            },
+
+            // Post updated permissions to parent Nextcloud page
+            _notifyParent: function () {
+                var msg = {
+                    type         : 'fo:savePerms',
+                    allowEdit    : !this._restrictEdit,
+                    allowPrint   : !this._restrictPrint,
+                    allowDownload: !this._restrictDownload
+                };
+                try { window.parent.postMessage(msg, '*'); } catch(e) {}
+            },
+
             getButtons: function(type) {
-                if (type===undefined)
+                if (type === undefined)
                     return this.lockedControls;
                 return [];
             },
@@ -210,16 +186,14 @@ define([
                     str = this.txtDocProtectedComment;
                 } else if (type === Asc.c_oAscEDocProtect.Forms) {
                     str = this.txtDocProtectedForms;
-                } else if (type === Asc.c_oAscEDocProtect.TrackedChanges){ // none or tracked changes
+                } else if (type === Asc.c_oAscEDocProtect.TrackedChanges){
                     str = this.txtDocProtectedTrack;
                 }
                 this.btnProtectDoc && this.btnProtectDoc.updateHint(str, true);
                 this._state.currentProtectHint = str;
             },
+
             txtProtectDoc         : 'Protect Document',
-            txtAllowEdit          : 'Allow Editing',
-            txtAllowPrint         : 'Allow Printing',
-            txtAllowDownload      : 'Allow Save Copy',
             txtDocProtectedView   : 'Document is protected.<br>You may only view this document.',
             txtDocProtectedTrack  : 'Document is protected.<br>You may edit this document, but all changes will be tracked.',
             txtDocProtectedComment: 'Document is protected.<br>You may only insert comments to this document.',

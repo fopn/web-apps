@@ -2822,21 +2822,18 @@ define([
                     // Native protection panel (Encrypt/Signature) is desktop-only.
                     var addCommon = config.isDesktopApp && (config.isSignatureSupport || config.isPasswordSupport);
 
-                    // FileOpen owner access-restriction controls (Allow Editing/Printing/Save Copy).
-                    // These work in the browser too — shown only for the file owner.
-                    var dpController = me.getApplication().getController('DocProtection'),
-                        dpView       = dpController && (dpController.view || dpController.getView('DocProtection')),
-                        ownerButtons = (dpView && dpView.getButtons()) || [];
+                    // FileOpen owner restriction dot-list — present whenever the view was created.
+                    var dpController  = me.getApplication().getController('DocProtection'),
+                        hasOwnerPanel = !!(dpController && dpController.view);
 
-                    if (addCommon || ownerButtons.length > 0) {
+                    if (addCommon || hasOwnerPanel) {
                         tab = {action: 'protect', caption: me.toolbar.textTabProtect, layoutname: 'toolbar-protect', dataHintTitle: 'T'};
                         $panel = addCommon ? me.getApplication().getController('Common.Controllers.Protection').createToolbarPanel() : undefined;
 
-                        if (ownerButtons.length > 0) {
+                        if (hasOwnerPanel) {
                             var $owner = dpController.createToolbarPanel();
-                            if ($panel) $panel.append($owner);   // nest owner buttons under the common panel
-                            else        $panel = $owner;          // owner-only (browser)
-                            Array.prototype.push.apply(me.toolbar.lockControls, ownerButtons);
+                            if ($panel) $panel.append($owner);
+                            else        $panel = $owner;
                         }
 
                         if ($panel && $panel.length) {
