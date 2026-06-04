@@ -222,7 +222,7 @@ define([
             if (this.api && typeof this.api['asc_GetSelectedText'] === 'function') {
                 selectedText = this.api['asc_GetSelectedText']() || '';
             }
-            Common.Gateway.requestSmartPicker(selectedText);
+            Common.Gateway.requestSmartPicker(selectedText, 'contextmenu');
         },
 
         setMode: function(mode) {

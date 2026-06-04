@@ -452,8 +452,8 @@ if (window.Common === undefined) {
                 _postMessage({event: 'onSubmit'});
             },
 
-            requestSmartPicker: function(selectedText) {
-                _postMessage({event: 'onRequestSmartPicker', data: { selectedText: selectedText || '' }});
+            requestSmartPicker: function(selectedText, source) {
+                _postMessage({event: 'onRequestSmartPicker', data: { selectedText: selectedText || '', source: source || 'smartpicker' }});
             },
 
             on: function(event, handler){

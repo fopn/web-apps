@@ -1846,14 +1846,11 @@ define([
             Common.component.Analytics.trackEvent('ToolBar', 'Add Hyperlink');
         },
 
-<<<<<<< HEAD
-=======
         onSmartPickerClick: function() {
             if (this.api && typeof this.api['asc_GetSelectedText'] === 'function') {
-                Common.Gateway.requestSmartPicker(this.api['asc_GetSelectedText']() || '');
+                Common.Gateway.requestSmartPicker(this.api['asc_GetSelectedText']() || '', 'toolbar');
             }
         },
->>>>>>> b9f3aebd26 (feat(web-apps): add smart picker assistant button to all editors)
 
         onTablePickerSelect: function(picker, columns, rows, e) {
             if (this.api) {
@@ -2794,20 +2791,10 @@ define([
 
             me.toolbar.render(_.extend({compactview: editmode ? compactview : true}, config));
 
-            // Smart Picker button visibility: show when EnableRemoteLinkPicker is true (WOPI cap)
-            // and ncAssistantAvailable is true (host announced Assistant app is loaded).
+            // Smart Picker button visibility: always visible (provider selection).
             if (me.toolbar.btnSmartPicker) {
-                var smartPickerVisible = !!(config.EnableRemoteLinkPicker && me.toolbar.ncAssistantAvailable);
-                me.toolbar.btnSmartPicker.setVisible(smartPickerVisible);
+                me.toolbar.btnSmartPicker.setVisible(true);
             }
-
-            // Listen for Assistant availability changes from the host
-            Common.Gateway.on('setassistantavailable', function(available) {
-                if (me.toolbar.btnSmartPicker && config.EnableRemoteLinkPicker) {
-                    me.toolbar.ncAssistantAvailable = !!available;
-                    me.toolbar.btnSmartPicker.setVisible(!!available);
-                }
-            });
 
             var tab = {action: 'review', caption: me.toolbar.textTabCollaboration, layoutname: 'toolbar-collaboration', dataHintTitle: 'U'};
             var $panel = me.getApplication().getController('Common.Controllers.ReviewChanges').createToolbarPanel();

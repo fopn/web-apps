@@ -1067,7 +1067,7 @@ define([
 
         onSmartPickerClick: function() {
             if (this.api && typeof this.api['asc_GetSelectedText'] === 'function') {
-                Common.Gateway.requestSmartPicker(this.api['asc_GetSelectedText']() || '');
+                Common.Gateway.requestSmartPicker(this.api['asc_GetSelectedText']() || '', 'toolbar');
             }
         },
 
@@ -4969,20 +4969,10 @@ define([
 
             me.toolbar.render(_.extend({isCompactView: editmode ? compactview : true}, config));
 
-            // Smart Picker button visibility: show when EnableRemoteLinkPicker is true (WOPI cap)
-            // and ncAssistantAvailable is true (host announced Assistant app is loaded).
+            // Smart Picker button visibility: always visible (provider selection).
             if (me.toolbar.btnSmartPicker) {
-                var smartPickerVisible = !!(config.EnableRemoteLinkPicker && me.toolbar.ncAssistantAvailable);
-                me.toolbar.btnSmartPicker.setVisible(smartPickerVisible);
+                me.toolbar.btnSmartPicker.setVisible(true);
             }
-
-            // Listen for Assistant availability changes from the host
-            Common.Gateway.on('setassistantavailable', function(available) {
-                if (me.toolbar.btnSmartPicker && config.EnableRemoteLinkPicker) {
-                    me.toolbar.ncAssistantAvailable = !!available;
-                    me.toolbar.btnSmartPicker.setVisible(!!available);
-                }
-            });
 
             if ( !config.isEditDiagram && !config.isEditMailMerge && !config.isEditOle ) {
                 var tab = {action: 'review', caption: me.toolbar.textTabCollaboration, layoutname: 'toolbar-collaboration', dataHintTitle: 'U'};
