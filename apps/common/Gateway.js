@@ -109,6 +109,7 @@ if (window.Common === undefined) {
             },
 
             'insertLink': function(data) {
+                console.log('Gateway insertLink handler called with data:', data);
                 $me.trigger('insertlink', data);
             },
 
@@ -182,10 +183,13 @@ if (window.Common === undefined) {
         };
 
         var _onMessage = function(msg) {
+            console.log('Gateway._onMessage received:', msg.data);
+            console.log('Gateway._onMessage msg.origin:', msg.origin, 'window.parentOrigin:', window.parentOrigin);
             // TODO: check message origin
-            if (msg.origin !== window.parentOrigin && msg.origin !== window.location.origin && !(msg.origin==="null" && (window.parentOrigin==="file://" || window.location.origin==="file://"))) return;
+            if (msg.origin !== window.parentOrigin && msg.origin !== window.location.origin && !(msg.origin==="null" && (window.parentOrigin==="file://" || window.location.origin==="file://"))) { console.log('Gateway._onMessage ORIGIN CHECK FAILED'); return; }
 
             var data = msg.data;
+            console.log('Gateway._onMessage data type:', typeof data, 'is string:', Object.prototype.toString.apply(data) === '[object String]');
             if (data && data.command === 'openDocumentFromBinary') {
                 handler = commandMap[data.command];
                 if (handler) {
@@ -195,6 +199,7 @@ if (window.Common === undefined) {
             }
 
             if (Object.prototype.toString.apply(data) !== '[object String]' || !window.JSON) {
+                console.log('Gateway._onMessage data not string, returning');
                 return;
             }
 
@@ -202,14 +207,20 @@ if (window.Common === undefined) {
 
             try {
                 cmd = window.JSON.parse(data)
+                console.log('Gateway._onMessage parsed cmd:', cmd);
             } catch(e) {
+                console.log('Gateway._onMessage JSON parse failed:', e);
                 cmd = '';
             }
 
             if (cmd) {
+                console.log('Gateway._onMessage cmd.command:', cmd.command);
                 handler = commandMap[cmd.command];
+                console.log('Gateway._onMessage handler for', cmd.command, ':', handler ? 'found' : 'NOT FOUND');
                 if (handler) {
+                    console.log('Gateway._onMessage calling handler for', cmd.command, 'with data:', cmd.data);
                     handler.call(this, cmd.data);
+                    console.log('Gateway._onMessage handler returned');
                 }
             }
         };

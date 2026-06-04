@@ -1988,12 +1988,17 @@ define([
         },
 
         insertLink: function(data) { // gateway
+            console.log('Toolbar.insertLink called with data:', data);
+            console.log('Toolbar.insertLink this.api:', this.api);
+            console.log('Toolbar.insertLink this.api.add_Hyperlink:', this.api && this.api.add_Hyperlink);
             
             var props   = new Asc.CHyperlinkProperty();
             props.put_Value(data);
             props.put_Bookmark(null);
             props.put_Text(data);
+            console.log('Toolbar.insertLink props created, Value:', props.get_Value());
             this.api.add_Hyperlink(props);
+            console.log('Toolbar.insertLink add_Hyperlink called');
             
             Common.NotificationCenter.trigger('storage:link-insert', data);
         },
