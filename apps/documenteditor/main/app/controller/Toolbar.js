@@ -426,6 +426,11 @@ define([
             toolbar.styleMenu.on('hide:before',                         _.bind(this.onListStyleBeforeHide, this));
             toolbar.btnInsertEquation.on('click',                       _.bind(this.onInsertEquationClick, this));
             toolbar.btnInsertSymbol.menu.items[2].on('click',           _.bind(this.onInsertSymbolClick, this));
+            toolbar.mnuInsertSymbolsPicker.on('item:click',             _.bind(this.onInsertSymbolItemClick, this));
+            toolbar.mnuNoControlsColor.on('click',                      _.bind(this.onNoControlsColor, this));
+            toolbar.mnuControlsColorPicker.on('select',                 _.bind(this.onSelectControlsColor, this));
+            toolbar.btnLineNumbers.menu.on('item:click',                _.bind(this.onLineNumbersSelect, this));
+            toolbar.btnLineNumbers.menu.on('show:after',                _.bind(this.onLineNumbersShow, this));
             toolbar.btnSmartPicker.on('click',                          _.bind(this.onSmartPickerClick, this));
 
             toolbar.btnHyphenation.menu.on('item:click',                _.bind(this.onHyphenationSelect, this));
@@ -1988,16 +1993,12 @@ define([
         },
 
         insertLink: function(data) { // gateway
-            if (!this.api) {
-                return;
-            }
-
-            // Use pluginMethod_PasteText to insert the link as plain text
-            // This is the same approach used by insertPlainText and works reliably
-            if (typeof this.api["pluginMethod_PasteText"] === 'function') {
-                this.api["pluginMethod_PasteText"](data);
-            }
-
+            if (!this.api) return;
+            var props = new Asc.CHyperlinkProperty();
+            props.put_Value(data);
+            props.put_Bookmark(null);
+            props.put_Text(data);
+            this.api.add_Hyperlink(props);
             Common.NotificationCenter.trigger('storage:link-insert', data);
         },
 
@@ -3911,10 +3912,10 @@ define([
 
             me.toolbar.render(_.extend({isCompactView: editmode ? compactview : true}, config));
 
-            // Smart Picker button visibility: always visible (provider selection).
-            if (me.toolbar.btnSmartPicker) {
-                me.toolbar.btnSmartPicker.setVisible(true);
-            }
+            // Smart Picker button visibility: show only when assistant is available.
+            Common.Gateway.on('setassistantavailable', function(available) {
+                me.toolbar.btnSmartPicker && me.toolbar.btnSmartPicker.setVisible(!!available);
+            });
 
             var tab = {action: 'review', caption: me.toolbar.textTabCollaboration, dataHintTitle: 'U', layoutname: 'toolbar-collaboration'};
             var $panel = me.application.getController('Common.Controllers.ReviewChanges').createToolbarPanel();

@@ -4969,10 +4969,10 @@ define([
 
             me.toolbar.render(_.extend({isCompactView: editmode ? compactview : true}, config));
 
-            // Smart Picker button visibility: always visible (provider selection).
-            if (me.toolbar.btnSmartPicker) {
-                me.toolbar.btnSmartPicker.setVisible(true);
-            }
+            // Smart Picker button visibility: show only when assistant is available.
+            Common.Gateway.on('setassistantavailable', function(available) {
+                me.toolbar.btnSmartPicker && me.toolbar.btnSmartPicker.setVisible(!!available);
+            });
 
             if ( !config.isEditDiagram && !config.isEditMailMerge && !config.isEditOle ) {
                 var tab = {action: 'review', caption: me.toolbar.textTabCollaboration, layoutname: 'toolbar-collaboration', dataHintTitle: 'U'};

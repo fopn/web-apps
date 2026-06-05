@@ -1,40 +1,5 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg
-   width="24"
-   height="24"
-   viewBox="0 0 24 24"
-   fill="currentColor"
-   version="1.1"
-   id="svg1"
-   sodipodi:docname="btn-nc-assistant.svg"
-   inkscape:version="1.4.4 (dcaf3e7d9e, 2026-05-05)"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:svg="http://www.w3.org/2000/svg">
-  <defs
-     id="defs1" />
-  <sodipodi:namedview
-     id="namedview1"
-     pagecolor="#ffffff"
-     bordercolor="#000000"
-     borderopacity="0.25"
-     inkscape:showpageshadow="2"
-     inkscape:pageopacity="0.0"
-     inkscape:pagecheckerboard="0"
-     inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="16.729167"
-     inkscape:cx="9.1755915"
-     inkscape:cy="12.044832"
-     inkscape:window-width="1191"
-     inkscape:window-height="749"
-     inkscape:window-x="118"
-     inkscape:window-y="127"
-     inkscape:window-maximized="0"
-     inkscape:current-layer="svg1" />
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
   <path
-     d="M 17.38512,3.5376698 16.415798,5.6532525 14.307909,6.614881 16.415798,7.5842024 17.38512,9.692092 18.346748,7.5842024 20.46233,6.614881 18.346748,5.6532525 Z M 9.6920921,5.8455781 7.7688351,10.076743 3.5376698,12 7.7688351,13.923258 9.6920921,18.154423 11.615349,13.923258 15.846514,12 11.615349,10.076743 Z m 7.6930279,8.4623309 -0.969322,2.107889 -2.107889,0.969322 2.107889,0.961628 0.969322,2.115582 0.961628,-2.115582 2.115582,-0.961628 -2.115582,-0.969322 z"
-     id="path1"
-     style="fill:none;stroke:#000000;stroke-width:0.599;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
-     sodipodi:nodetypes="ccccccccccccccccccccccccccc" />
+    d="M 17.385,3.538 16.416,5.653 14.308,6.615 16.416,7.584 17.385,9.692 18.347,7.584 20.462,6.615 18.347,5.653 Z M 9.692,5.846 7.769,10.077 3.538,12 7.769,13.923 9.692,18.154 11.615,13.923 15.847,12 11.615,10.077 Z m 7.693,8.462 -0.969,2.108 -2.108,0.969 2.108,0.962 0.969,2.116 0.962,-2.116 2.116,-0.962 -2.116,-0.969 z"
+    stroke="currentColor" stroke-width="0.6" stroke-linejoin="round"/>
 </svg>

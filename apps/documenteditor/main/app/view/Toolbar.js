@@ -1059,6 +1059,7 @@ define([
                         dataHintOffset: 'small'
                     });
                     this.paragraphControls.push(this.btnSmartPicker);
+                    this.lockControls.push(this.btnSmartPicker);
 
                     this.btnDropCap = new Common.UI.Button({
                         id: 'tlbtn-dropcap',
