@@ -1988,19 +1988,16 @@ define([
         },
 
         insertLink: function(data) { // gateway
-            console.log('Toolbar.insertLink called with data:', data);
-            
             if (!this.api) {
-                console.error('Toolbar.insertLink: this.api is not available');
                 return;
             }
-            
+
             // Use pluginMethod_PasteText to insert the link as plain text
             // This is the same approach used by insertPlainText and works reliably
             if (typeof this.api["pluginMethod_PasteText"] === 'function') {
                 this.api["pluginMethod_PasteText"](data);
             }
-            
+
             Common.NotificationCenter.trigger('storage:link-insert', data);
         },
 
