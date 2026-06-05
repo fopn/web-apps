@@ -1989,16 +1989,17 @@ define([
 
         insertLink: function(data) { // gateway
             console.log('Toolbar.insertLink called with data:', data);
-            console.log('Toolbar.insertLink this.api:', this.api);
-            console.log('Toolbar.insertLink this.api.add_Hyperlink:', this.api && this.api.add_Hyperlink);
             
-            var props   = new Asc.CHyperlinkProperty();
-            props.put_Value(data);
-            props.put_Bookmark(null);
-            props.put_Text(data);
-            console.log('Toolbar.insertLink props created, Value:', props.get_Value());
-            this.api.add_Hyperlink(props);
-            console.log('Toolbar.insertLink add_Hyperlink called');
+            if (!this.api) {
+                console.error('Toolbar.insertLink: this.api is not available');
+                return;
+            }
+            
+            // Use pluginMethod_PasteText to insert the link as plain text
+            // This is the same approach used by insertPlainText and works reliably
+            if (typeof this.api["pluginMethod_PasteText"] === 'function') {
+                this.api["pluginMethod_PasteText"](data);
+            }
             
             Common.NotificationCenter.trigger('storage:link-insert', data);
         },
