@@ -436,6 +436,7 @@ define([
                 toolbar.btnWrap.on('click',                                 _.bind(this.onWrap, this));
                 toolbar.btnTextOrient.menu.on('item:click',                 _.bind(this.onTextOrientationMenu, this));
                 toolbar.btnInsertTable.on('click',                          _.bind(this.onBtnInsertTableClick, this));
+                toolbar.btnSmartPicker.on('click',                          _.bind(this.onSmartPickerClick, this));
                 toolbar.btnInsertImage.menu.on('item:click',                _.bind(this.onInsertImageMenu, this));
                 toolbar.btnInsertHyperlink.on('click',                      _.bind(this.onHyperlink, this));
                 toolbar.btnInsertText.on('click',                           _.bind(this.onBtnInsertTextClick, this));
@@ -537,7 +538,9 @@ define([
                 toolbar.btnInsertChartRecommend.on('click',                 _.bind(this.onChartRecommendedClick, this));
                 toolbar.btnFillNumbers.menu.on('item:click',                _.bind(this.onFillNumMenu, this));
                 toolbar.btnFillNumbers.menu.on('show:before',               _.bind(this.onShowBeforeFillNumMenu, this));
-                Common.Gateway.on('insertimage',                      _.bind(this.insertImage, this));
+                Common.Gateway.on('insertimage',                            _.bind(this.insertImage, this));
+                Common.Gateway.on('insertlink',                             _.bind(this.insertLink, this));
+                Common.Gateway.on('insertplaintext',                        _.bind(this.insertPlainText, this));
 
                 this.onSetupCopyStyleButton();
                 this.onBtnChangeState('undo:disabled', toolbar.btnUndo, toolbar.btnUndo.isDisabled());
@@ -1063,6 +1066,12 @@ define([
             Common.component.Analytics.trackEvent('ToolBar', 'Table');
         },
 
+        onSmartPickerClick: function() {
+            if (this.api && typeof this.api['asc_GetSelectedText'] === 'function') {
+                Common.Gateway.requestSmartPicker(this.api['asc_GetSelectedText']() || '', 'toolbar');
+            }
+        },
+
         onBtnPasteOptionsClick: function (btn, e) {
             var me = this;
             var menu = me.toolbar.btnPaste.menu;
@@ -1371,6 +1380,29 @@ define([
                 data._urls = arr;
             }
             Common.NotificationCenter.trigger('storage:image-insert', data);
+        },
+        
+        insertLink: function(data) { // gateway
+            
+            var props = new Asc.asc_CHyperlink();
+            props.asc_setHyperlinkUrl(data);
+            props.asc_setText(data);
+            this.api.asc_insertHyperlink(props);
+            
+            Common.NotificationCenter.trigger('storage:link-insert', data);
+        },
+
+        insertPlainText: function(data) {
+            // pluginMethod_PasteText is the cross-editor (CDE/CSE/CPE) plain-text
+            // paste entry registered via Api.prototype[...] in
+            // sdkjs/common/apiBase_plugins.js. Bracket-registered so it survives
+            // the Closure Compiler advanced-mode minifier; internally wraps
+            // asc_PasteData(Text, text, ...) with proper undo grouping. This is
+            // the same path OnlyOffice's AI plugin uses for text insertion.
+            if (typeof this.api["pluginMethod_PasteText"] === 'function') {
+                this.api["pluginMethod_PasteText"](data);
+            }
+            Common.NotificationCenter.trigger('storage:plain-text-insert', data);
         },
 
         onHyperlink: function(btn) {
@@ -4942,6 +4974,11 @@ define([
             }
 
             me.toolbar.render(_.extend({isCompactView: editmode ? compactview : true}, config));
+
+            // Smart Picker button visibility: show only when assistant is available.
+            Common.Gateway.on('setassistantavailable', function(available) {
+                me.toolbar.btnSmartPicker && me.toolbar.btnSmartPicker.setVisible(!!available);
+            });
 
             if ( !config.isEditDiagram && !config.isEditMailMerge && !config.isEditOle ) {
                 var tab = {action: 'review', caption: me.toolbar.textTabCollaboration, layoutname: 'toolbar-collaboration', dataHintTitle: 'U'};
