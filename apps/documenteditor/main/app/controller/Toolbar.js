@@ -431,6 +431,8 @@ define([
             toolbar.mnuControlsColorPicker.on('select',                 _.bind(this.onSelectControlsColor, this));
             toolbar.btnLineNumbers.menu.on('item:click',                _.bind(this.onLineNumbersSelect, this));
             toolbar.btnLineNumbers.menu.on('show:after',                _.bind(this.onLineNumbersShow, this));
+            toolbar.btnSmartPicker.on('click',                          _.bind(this.onSmartPickerClick, this));
+
             toolbar.btnHyphenation.menu.on('item:click',                _.bind(this.onHyphenationSelect, this));
             toolbar.btnHyphenation.menu.on('show:after',                _.bind(this.onHyphenationShow, this));
             Common.Gateway.on('insertimage',                      _.bind(this.insertImage, this));
@@ -1991,13 +1993,12 @@ define([
         },
 
         insertLink: function(data) { // gateway
-            
-            var props   = new Asc.CHyperlinkProperty();
+            if (!this.api) return;
+            var props = new Asc.CHyperlinkProperty();
             props.put_Value(data);
             props.put_Bookmark(null);
             props.put_Text(data);
             this.api.add_Hyperlink(props);
-            
             Common.NotificationCenter.trigger('storage:link-insert', data);
         },
 
@@ -3466,6 +3467,12 @@ define([
             !specCharacter && this.toolbar.saveSymbol(symbol, font);
         },
 
+        onSmartPickerClick: function() {
+            if (this.api && typeof this.api['asc_GetSelectedText'] === 'function') {
+                Common.Gateway.requestSmartPicker(this.api['asc_GetSelectedText']() || '', 'toolbar');
+            }
+        },
+
         onApiMathTypes: function(equation) {
             this._equationTemp = equation;
             var me = this;
@@ -3904,6 +3911,11 @@ define([
             Common.Utils.InternalSettings.set('toolbar-active-tab', !editmode && !compactview);
 
             me.toolbar.render(_.extend({isCompactView: editmode ? compactview : true}, config));
+
+            // Smart Picker button visibility: show only when assistant is available.
+            Common.Gateway.on('setassistantavailable', function(available) {
+                me.toolbar.btnSmartPicker && me.toolbar.btnSmartPicker.setVisible(!!available);
+            });
 
             var tab = {action: 'review', caption: me.toolbar.textTabCollaboration, dataHintTitle: 'U', layoutname: 'toolbar-collaboration'};
             var $panel = me.application.getController('Common.Controllers.ReviewChanges').createToolbarPanel();

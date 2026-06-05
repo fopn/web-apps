@@ -383,6 +383,7 @@ define([
             toolbar.btnShapesMerge.menu.on('item:click',                _.bind(this.onClickMenuShapesMerge, this));
             toolbar.btnShapesMerge.menu.on('show:before',               _.bind(this.onBeforeShapesMerge, this));
             toolbar.btnInsertHyperlink.on('click',                      _.bind(this.onHyperlinkClick, this));
+            toolbar.btnSmartPicker.on('click',                          _.bind(this.onSmartPickerClick, this));
             toolbar.mnuTablePicker.on('select',                         _.bind(this.onTablePickerSelect, this));
             toolbar.btnInsertTable.menu.on('item:click',                _.bind(this.onInsertTableClick, this));
             toolbar.btnClearStyle.on('click',                           _.bind(this.onClearStyleClick, this));
@@ -1845,6 +1846,11 @@ define([
             Common.component.Analytics.trackEvent('ToolBar', 'Add Hyperlink');
         },
 
+        onSmartPickerClick: function() {
+            if (this.api && typeof this.api['asc_GetSelectedText'] === 'function') {
+                Common.Gateway.requestSmartPicker(this.api['asc_GetSelectedText']() || '', 'toolbar');
+            }
+        },
 
         onTablePickerSelect: function(picker, columns, rows, e) {
             if (this.api) {
@@ -2784,6 +2790,11 @@ define([
             Common.Utils.InternalSettings.set('toolbar-active-tab', !editmode && !compactview);
 
             me.toolbar.render(_.extend({compactview: editmode ? compactview : true}, config));
+
+            // Smart Picker button visibility: show only when assistant is available.
+            Common.Gateway.on('setassistantavailable', function(available) {
+                me.toolbar.btnSmartPicker && me.toolbar.btnSmartPicker.setVisible(!!available);
+            });
 
             var tab = {action: 'review', caption: me.toolbar.textTabCollaboration, layoutname: 'toolbar-collaboration', dataHintTitle: 'U'};
             var $panel = me.getApplication().getController('Common.Controllers.ReviewChanges').createToolbarPanel();
