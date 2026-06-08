@@ -2,15 +2,10 @@
  * SPDX-FileCopyrightText: 2026 Nextcloud GmbH or an Nextcloud affiliate company and Euro-Office contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
- 
+
 define([
     'common/main/lib/view/AdvancedSettingsWindow'
 ], function () { 'use strict';
-
-    // Matches CFormControlPr_checked_* constants in Controls.js
-    var CHECKED_UNCHECKED = 0;
-    var CHECKED_CHECKED   = 1;
-    var CHECKED_MIXED     = 2;
 
     SSE.Views.CheckBoxSettingsDialog = Common.Views.AdvancedSettingsWindow.extend(_.extend({
         options: {
@@ -31,32 +26,17 @@ define([
                             '<table cols="1" style="width: 100%;">',
                                 '<tr>',
                                     '<td>',
-                                        '<label class="input-label" style="font-weight: bold;">' + me.textValue + '</label>',
-                                    '</td>',
-                                '</tr>',
-                                '<tr>',
-                                    '<td class="padding-small">',
-                                        '<div id="checkbox-settings-unchecked" class="input-row"></div>',
-                                    '</td>',
-                                '</tr>',
-                                '<tr>',
-                                    '<td class="padding-small">',
-                                        '<div id="checkbox-settings-checked" class="input-row"></div>',
-                                    '</td>',
-                                '</tr>',
-                                '<tr>',
-                                    '<td class="padding-small">',
-                                        '<div id="checkbox-settings-mixed" class="input-row"></div>',
-                                    '</td>',
-                                '</tr>',
-                                '<tr>',
-                                    '<td style="padding-top: 10px;">',
-                                        '<label class="input-label" style="font-weight: bold;">' + me.textCellLink + '</label>',
+                                        '<label class="input-label header">' + me.textCellLink + '</label>',
                                     '</td>',
                                 '</tr>',
                                 '<tr>',
                                     '<td class="padding-small">',
                                         '<div id="checkbox-settings-cell-link" class="input-row"></div>',
+                                    '</td>',
+                                '</tr>',
+                                '<tr>',
+                                    '<td class="padding-top-small">',
+                                        '<label class="input-label">' + me.textCellLinkHint + '</label>',
                                     '</td>',
                                 '</tr>',
                             '</table>',
@@ -86,41 +66,18 @@ define([
 
             var me = this;
 
-            this.radioUnchecked = new Common.UI.RadioBox({
-                el      : $('#checkbox-settings-unchecked'),
-                labelText: me.textUnchecked,
-                name    : 'asc-checkbox-value',
-                value   : CHECKED_UNCHECKED
-            });
-
-            this.radioChecked = new Common.UI.RadioBox({
-                el      : $('#checkbox-settings-checked'),
-                labelText: me.textChecked,
-                name    : 'asc-checkbox-value',
-                value   : CHECKED_CHECKED
-            });
-
-            this.radioMixed = new Common.UI.RadioBox({
-                el      : $('#checkbox-settings-mixed'),
-                labelText: me.textMixed,
-                name    : 'asc-checkbox-value',
-                value   : CHECKED_MIXED
-            });
-
-            this.txtCellLink = new Common.UI.InputFieldBtn({
-                el          : $('#checkbox-settings-cell-link'),
-                name        : 'range',
-                style       : 'width: 100%;',
-                btnHint     : this.textSelectData,
+            this.txtCellLink = new Common.UI.InputField({
+                el            : $('#checkbox-settings-cell-link'),
+                name          : 'range',
+                style         : 'width: 100%;',
                 validateOnBlur: false,
                 hideErrorOnInput: true,
-                validator   : function (value) {
+                validator     : function (value) {
                     if (!value || value.trim() === '') return true;
                     var result = me.api.asc_checkDataRange(Asc.c_oAscSelectionDialogType.CheckBox, value, true);
                     return result === Asc.c_oAscError.ID.No || me.textInvalidRef;
                 }
             });
-            this.txtCellLink.on('button:click', _.bind(this.onSelectCellLink, this));
 
             this.afterRender();
         },
@@ -130,7 +87,7 @@ define([
         },
 
         getFocusedComponents: function () {
-            return [this.radioUnchecked, this.radioChecked, this.radioMixed, this.txtCellLink].concat(this.getFooterButtons());
+            return [this.txtCellLink].concat(this.getFooterButtons());
         },
 
         getDefaultFocusableComponent: function () {
@@ -141,64 +98,18 @@ define([
 
         _setDefaults: function (props) {
             if (!props) return;
-            var checked = props.checked || CHECKED_UNCHECKED;
-            if (checked === CHECKED_CHECKED) {
-                this.radioChecked.setValue(true, true);
-            } else if (checked === CHECKED_MIXED) {
-                this.radioMixed.setValue(true, true);
-            } else {
-                this.radioUnchecked.setValue(true, true);
-            }
             this.txtCellLink.setValue(props.fmlaLink || '');
         },
 
         getSettings: function () {
-            var checked = CHECKED_UNCHECKED;
-            if (this.radioChecked.getValue()) {
-                checked = CHECKED_CHECKED;
-            } else if (this.radioMixed.getValue()) {
-                checked = CHECKED_MIXED;
-            }
             return {
-                checked  : checked,
                 fmlaLink : this.txtCellLink.getValue()
             };
         },
 
-        onSelectCellLink: function () {
-            var me = this;
-            if (me.api) {
-                var win = new SSE.Views.CellRangeDialog({
-                    handler: function (dlg, result) {
-                        if (result === 'ok') {
-                            me.txtCellLink.setValue(dlg.getSettings());
-                            me.txtCellLink.checkValidate();
-                        }
-                    }
-                }).on('close', function () {
-                    me.show();
-                    _.delay(function () {
-                        me.txtCellLink.focus();
-                    }, 1);
-                });
-                var xy = Common.Utils.getOffset(me.$window);
-                me.hide();
-                win.show(me.$window, xy);
-                win.setSettings({
-                    api     : me.api,
-                    range   : me.txtCellLink.getValue(),
-                    type    : Asc.c_oAscSelectionDialogType.CheckBox
-                });
-            }
-        },
-
-        textTitle     : 'Format Control',
-        textValue     : 'Value',
-        textUnchecked : 'Unchecked',
-        textChecked   : 'Checked',
-        textMixed     : 'Mixed',
-        textCellLink  : 'Cell link',
-        textSelectData: 'Select data',
-        textInvalidRef: 'ERROR! Invalid cell reference'
+        textTitle        : 'Link Cell',
+        textCellLink     : 'Cell reference',
+        textCellLinkHint : 'The cell will display TRUE or FALSE depending on the checked state of the checkbox.',
+        textInvalidRef   : 'ERROR! Invalid cell reference'
     }, SSE.Views.CheckBoxSettingsDialog || {}));
 });
