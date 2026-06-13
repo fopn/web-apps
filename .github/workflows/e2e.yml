@@ -62,19 +62,37 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y openjdk-21-jre-headless brotli zip bzip2
 
+      - name: Pull nightly image
+        run: docker pull ${{ env.NIGHTLY_IMAGE }}
+
+      # The editor reports a build version to docservice, which rejects the
+      # document if it differs from its own (services gate on an exact match).
+      # The fresh build must therefore carry the SAME PRODUCT_VERSION the nightly
+      # image was built with — otherwise the editor loads but the document never
+      # opens. Read it from the image so this tracks version bumps automatically.
+      - name: Read nightly product version
+        id: ver
+        run: |
+          set -euo pipefail
+          VER=$(docker run --rm --entrypoint sh ${{ env.NIGHTLY_IMAGE }} -c \
+            "grep -A2 'DocsAPI.DocEditor.version = function' \
+              \$(find /var/www -maxdepth 6 -path '*api/documents/api.js' | head -n1) \
+              | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -n1")
+          test -n "$VER"
+          echo "product_version=$VER" >> "$GITHUB_OUTPUT"
+          echo "nightly PRODUCT_VERSION=$VER"
+
       - name: Build web-apps
         working-directory: web-apps/build
         env:
           BUILD_ROOT: ${{ github.workspace }}/web-apps/deploy
           THEME: euro-office
+          PRODUCT_VERSION: ${{ steps.ver.outputs.product_version }}
         run: |
           npm install -g grunt-cli
           npm install
           ( cd ../translation && python3 merge_and_check.py )
           grunt
-
-      - name: Pull nightly image
-        run: docker pull ${{ env.NIGHTLY_IMAGE }}
 
       - name: Build overlay image with fresh web-apps
         run: |
