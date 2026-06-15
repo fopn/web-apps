@@ -69,6 +69,11 @@ define([], function () {
                     '<div id="id-protect-radio-forms" style="margin-bottom: 8px;"></div>',
                     '<div id="id-protect-radio-review" style="margin-bottom: 8px;"></div>',
                     '<div id="id-protect-radio-comment" style="margin-bottom: 8px;"></div>',
+                    '<div style="margin-top: 10px; margin-bottom: 5px;">',
+                        '<label class="font-weight-bold" style="margin-bottom: 5px;">' + t.txtPermissions + '</label>',
+                    '</div>',
+                    '<div id="id-protect-chk-print" style="margin-bottom: 6px;"></div>',
+                    '<div id="id-protect-chk-copy" style="margin-bottom: 10px;"></div>',
                     '<label>' + t.txtWarning + '</label>',
                 '</div>'
             ].join('');
@@ -138,6 +143,19 @@ define([], function () {
                 value: Asc.c_oAscEDocProtect.Comments
             });
 
+            this.chkAllowPrint = new Common.UI.CheckBox({
+                el: this.$window.find('#id-protect-chk-print'),
+                labelText: this.textAllowPrint,
+                value: true
+            });
+            this.chkAllowPrint.setValue(true, true);
+
+            this.chkAllowCopy = new Common.UI.CheckBox({
+                el: this.$window.find('#id-protect-chk-copy'),
+                labelText: this.textAllowCopy,
+                value: true
+            });
+            this.chkAllowCopy.setValue(true, true);
 
             this.btnOk = _.find(this.getFooterButtons(), function (item) {
                 return (item.$el && item.$el.find('.primary').addBack().filter('.primary').length>0);
@@ -147,7 +165,7 @@ define([], function () {
         },
 
         getFocusedComponents: function() {
-            return [this.inputPwd, this.repeatPwd, this.rbView, this.rbForms, this.rbReview, this.rbComments].concat(this.getFooterButtons());
+            return [this.inputPwd, this.repeatPwd, this.rbView, this.rbForms, this.rbReview, this.rbComments, this.chkAllowPrint, this.chkAllowCopy].concat(this.getFooterButtons());
         },
 
         getDefaultFocusableComponent: function () {
@@ -195,14 +213,20 @@ define([], function () {
         },
 
         getSettings: function() {
+            var editType;
             if (this.rbView.getValue())
-                return Asc.c_oAscEDocProtect.ReadOnly;
-            if (this.rbForms.getValue())
-                return Asc.c_oAscEDocProtect.Forms;
-            if (this.rbReview.getValue())
-                return Asc.c_oAscEDocProtect.TrackedChanges;
-            if (this.rbComments.getValue())
-                return Asc.c_oAscEDocProtect.Comments;
+                editType = Asc.c_oAscEDocProtect.ReadOnly;
+            else if (this.rbForms.getValue())
+                editType = Asc.c_oAscEDocProtect.Forms;
+            else if (this.rbReview.getValue())
+                editType = Asc.c_oAscEDocProtect.TrackedChanges;
+            else if (this.rbComments.getValue())
+                editType = Asc.c_oAscEDocProtect.Comments;
+            return {
+                editType: editType,
+                allowPrint: this.chkAllowPrint.getValue() !== false,
+                allowCopy: this.chkAllowCopy.getValue() !== false
+            };
         },
 
         SetDisabled: function(disabled) {
@@ -221,7 +245,10 @@ define([], function () {
         textForms: 'Filling forms',
         textReview: 'Tracked changes',
         textComments: 'Comments',
-        txtLimit: 'Password is limited to 15 characters'
+        txtLimit: 'Password is limited to 15 characters',
+        txtPermissions: 'Other users may:',
+        textAllowPrint: 'Print this document',
+        textAllowCopy: 'Save a copy of this document'
 
     }, DE.Views.ProtectDialog || {}));
 });

@@ -135,6 +135,7 @@ require([
             'SlideMasterTab',
             'Search',
             'Print',
+            'DocProtection',
             'Common.Controllers.Fonts',
             'Common.Controllers.History'
             /** coauthoring begin **/
@@ -174,6 +175,7 @@ require([
             'presentationeditor/main/app/controller/SlideMasterTab',
             'presentationeditor/main/app/controller/Search',
             'presentationeditor/main/app/controller/Print',
+            'presentationeditor/main/app/controller/DocProtection',
             // 'presentationeditor/main/app/view/ParagraphSettings',
             // 'presentationeditor/main/app/view/ImageSettings',
             // 'presentationeditor/main/app/view/ShapeSettings',

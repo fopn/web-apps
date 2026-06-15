@@ -2856,14 +2856,23 @@ define([
                     me.toolbar.processPanelVisible(null, true);
                 }
 
-                if ( config.canProtect && config.isDesktopApp ) {
-                    if (config.isSignatureSupport || config.isPasswordSupport) { // don't add protect panel to toolbar
+                if ( config.canProtect ) {
+                    // Common.Controllers.Protection.setMode() is always called now (see Main.js),
+                    // so createToolbarPanel() always returns a valid <section> wrapper.
+                    // This mirrors the DE pattern exactly.
+                    var dpController  = me.getApplication().getController('DocProtection'),
+                        hasOwnerPanel = !!(dpController && dpController.view);
+
+                    $panel = me.getApplication().getController('Common.Controllers.Protection').createToolbarPanel();
+                    if ($panel && hasOwnerPanel) {
                         tab = {action: 'protect', caption: me.toolbar.textTabProtect, layoutname: 'toolbar-protect', dataHintTitle: 'T'};
-                        $panel = me.getApplication().getController('Common.Controllers.Protection').createToolbarPanel();
-                        if ($panel) {
-                            me.toolbar.addTab(tab, $panel, 8);
-                            me.toolbar.setVisible('protect', Common.UI.LayoutManager.isElementVisible('toolbar-protect'));
-                        }
+                        $panel.append(dpController.createToolbarPanel());
+                        me.toolbar.addTab(tab, $panel, 8);
+                        me.toolbar.setVisible('protect', Common.UI.LayoutManager.isElementVisible('toolbar-protect'));
+                    } else if ($panel && config.isDesktopApp && (config.isSignatureSupport || config.isPasswordSupport)) {
+                        tab = {action: 'protect', caption: me.toolbar.textTabProtect, layoutname: 'toolbar-protect', dataHintTitle: 'T'};
+                        me.toolbar.addTab(tab, $panel, 8);
+                        me.toolbar.setVisible('protect', Common.UI.LayoutManager.isElementVisible('toolbar-protect'));
                     }
                 }
 
