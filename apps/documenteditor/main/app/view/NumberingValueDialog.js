@@ -146,8 +146,8 @@ define([], function () { 'use strict';
                     };
                     maskExp = /[A-Za-z0-9]/;
                     break;
-                case Asc.c_oAscNumberingFormat.RussianLower: // Russian lowercase letters
-                case Asc.c_oAscNumberingFormat.RussianUpper: // Russian uppercase letters
+                case Asc.c_oAscNumberingFormat.RussianLower: // а, б, в, ...
+                case Asc.c_oAscNumberingFormat.RussianUpper: // А, Б, В, ...
                     convertValue = function (value) {
                         return /\D/.test(value) ? AscCommon.RussianNumberingToInt(value) : parseInt(value);
                     };
