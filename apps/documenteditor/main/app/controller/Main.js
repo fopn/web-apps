@@ -1284,6 +1284,54 @@ define([
                 }
             },
 
+            // FileOpen: show a one-time professional notice to shared/restricted (non-owner)
+            // users informing them the document is protected by FileOpen. Triggered by the
+            // `foProtectedNotice` flag the Nextcloud app injects into editorConfig.customization.
+            _showFileOpenProtectedNotice: function() {
+                var me = this;
+                var notice = me.appOptions.customization && me.appOptions.customization.foProtectedNotice;
+                if (!notice || !notice.show || me._foNoticeShown)
+                    return;
+                me._foNoticeShown = true;
+
+                // FileOpen brand palette
+                var GREEN = '#8DC63F', GREY = '#58595B', GREY2 = '#808285';
+
+                // Logo: rendered from the official asset supplied in `me._foLogoDataUri`
+                // (a data: URI of the real FileOpen Systems logo). Until that is set, fall
+                // back to a plain text label — the artwork itself is not recreated here.
+                var logo = me._foLogoDataUri
+                    ? '<img src="' + me._foLogoDataUri + '" alt="FileOpen Systems" style="max-width:220px;max-height:70px;height:auto;" />'
+                    : '<div style="font-size:18px;font-weight:700;color:' + GREY + ';letter-spacing:.3px;">FileOpen Systems</div>';
+
+                var limits = [];
+                if (!notice.allowEdit)     limits.push('editing');
+                if (!notice.allowPrint)    limits.push('printing');
+                if (!notice.allowDownload) limits.push('download &amp; copy');
+                var details = limits.length
+                    ? '<div style="display:inline-block;margin-top:14px;padding:5px 12px;background:#F1F8E4;' +
+                          'border:1px solid ' + GREEN + ';border-radius:14px;font-size:11px;color:' + GREY + ';">' +
+                          'Restricted for your account: ' + limits.join(', ') + '</div>'
+                    : '';
+
+                var msg = '<div style="text-align:center;padding:6px 10px;background:#ffffff;">' +
+                    logo +
+                    '<div style="height:3px;width:60px;margin:12px auto 0;background:' + GREEN + ';border-radius:2px;"></div>' +
+                    '<div style="margin-top:14px;font-size:14px;font-weight:600;color:' + GREY + ';">' +
+                        'This document is protected by FileOpen.</div>' +
+                    '<div style="margin-top:6px;font-size:12px;color:' + GREY2 + ';">' +
+                        'Access to this document is managed by its owner.</div>' +
+                    details +
+                    '</div>';
+
+                Common.UI.info({
+                    title: 'FileOpen Systems',
+                    width: 440,
+                    msg: msg,
+                    buttons: ['ok']
+                });
+            },
+
             onDocumentContentReady: function() {
                 if (this._isDocReady)
                     return;
@@ -1300,6 +1348,9 @@ define([
                 me.api.SetDrawingFreeze(false);
                 me.hidePreloader();
                 me.onLongActionEnd(Asc.c_oAscAsyncActionType['BlockInteraction'], LoadingDocument);
+
+                // FileOpen: greet shared/restricted users when the document is protected.
+                me._showFileOpenProtectedNotice();
 
                 if (!me.appOptions.canCopy)
                     Common.UI.TooltipManager.showTip({ step: 'copyDisabled', text: me.errorCopyDisabled, target: '#toolbar', maxwidth: 350, automove: true, noHighlight: true, noArrow: true, showButton: false});
