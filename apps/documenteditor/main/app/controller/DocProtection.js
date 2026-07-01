@@ -120,11 +120,9 @@ define([
                         handler: function(result, value, props) {
                             if (result == 'ok') {
                                 var protection = me.api.asc_getDocumentProtection() || new AscCommonWord.CDocProtect();
-                                protection.asc_setEditType(props.editType);
+                                protection.asc_setEditType(props);
                                 protection.asc_setPassword(value);
                                 me.api.asc_setDocumentProtection(protection);
-                                me.savePermissions(props.allowPrint, props.allowCopy);
-                                me.applyPermissions(props.allowPrint, props.allowCopy);
                             }
                             Common.NotificationCenter.trigger('edit:complete');
                         }
@@ -164,55 +162,6 @@ define([
                     props.asc_setEditType(Asc.c_oAscEDocProtect.None);
                     me.api.asc_setDocumentProtection(props);
                 }
-            }
-        },
-
-        savePermissions: function(allowPrint, allowCopy) {
-            if (!this.api) return;
-            var boolType = AscCommon.c_oVariantTypes.vtBool;
-            var setOrAdd = function(api, name, value) {
-                var all = api.asc_getAllCustomProperties ? api.asc_getAllCustomProperties() : [];
-                var idx = -1;
-                for (var i = 0; i < all.length; i++) {
-                    if (all[i].asc_getName() === name) { idx = i; break; }
-                }
-                if (idx >= 0) {
-                    api.asc_modifyCustomProperty(idx, name, boolType, value);
-                } else {
-                    api.asc_addCustomProperty(name, boolType, value);
-                }
-            };
-            setOrAdd(this.api, '_fo_allow_print', allowPrint);
-            setOrAdd(this.api, '_fo_allow_copy', allowCopy);
-        },
-
-        applyPermissions: function(allowPrint, allowCopy) {
-            var mainCtrl = this.getApplication().getController('Main');
-            if (mainCtrl) {
-                mainCtrl.appOptions.canPrint = allowPrint;
-                if (!allowCopy) mainCtrl.appOptions.canDownload = false;
-            }
-            var toolbarCtrl = this.getApplication().getController('Toolbar');
-            var toolbar = toolbarCtrl && toolbarCtrl.toolbar;
-            if (toolbar && toolbar.btnPrint) {
-                toolbar.lockToolbar(Common.enumLock.cantPrint, !allowPrint, { array: [toolbar.btnPrint] });
-                if (!allowPrint) toolbar.btnPrint.hide();
-                else toolbar.btnPrint.show();
-            }
-            Common.NotificationCenter.trigger('protect:permissions', { allowPrint: allowPrint, allowCopy: allowCopy });
-        },
-
-        readAndApplyStoredPermissions: function() {
-            if (!this.api) return;
-            var all = this.api.asc_getAllCustomProperties ? this.api.asc_getAllCustomProperties() : [];
-            var allowPrint = true, allowCopy = true;
-            for (var i = 0; i < all.length; i++) {
-                var name = all[i].asc_getName();
-                if (name === '_fo_allow_print') allowPrint = all[i].asc_getValue() !== false;
-                if (name === '_fo_allow_copy') allowCopy = all[i].asc_getValue() !== false;
-            }
-            if (!allowPrint || !allowCopy) {
-                this.applyPermissions(allowPrint, allowCopy);
             }
         },
 
@@ -259,7 +208,6 @@ define([
                 }
 
                 props && me.applyRestrictions(type);
-                me.readAndApplyStoredPermissions();
             });
         },
 
