@@ -534,6 +534,7 @@ define([
 
                 if (data.doc) {
                     this.permissions = $.extend(this.permissions, data.doc.permissions);
+                    Common.Utils.applyDemoPermissionsByName(data.doc.title, this.permissions); // EO-DEMO: name-based UI permissions
 
                     var _options = $.extend({}, data.doc.options, this.editorConfig.actionLink || {});
 
