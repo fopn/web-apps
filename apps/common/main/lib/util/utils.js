@@ -1009,6 +1009,31 @@ define([], function () {
         return _user;
     };
 
+    // === EO-DEMO permissions BEGIN ===
+    // Quick demo: derive UI permissions from the file name until the real
+    // encryption-backed permissions are available. Mutates and returns the
+    // passed-in permissions object so downstream appOptions.can* flags follow.
+    // Recognised name tokens (case-insensitive): nocopy, noprint, nodownload,
+    // nosave, readonly / viewonly.
+    Common.Utils.applyDemoPermissionsByName = function (title, permissions) {
+        permissions = permissions || {};
+        if (!title || typeof title !== 'string') return permissions;
+
+        var name = title.toLowerCase();
+        var has = function (token) { return name.indexOf(token) !== -1; };
+
+        if (has('nocopy'))     permissions.copy = false;
+        if (has('noprint'))    permissions.print = false;
+        if (has('nodownload')) permissions.download = false;
+        // 'nosave' is enforced via edit (save button is gated on edit rights).
+        if (has('nosave'))     permissions.edit = false;
+        if (has('readonly') || has('viewonly')) permissions.edit = false;
+
+        return permissions;
+    };
+    // === EO-DEMO permissions END ===
+
+
 
     Common.Utils.createXhr = function () {
         var xmlhttp;
