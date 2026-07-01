@@ -6,6 +6,7 @@ on:
 
 jobs:
     build-apps:
+        if: false
         name: "Build web-apps"
         runs-on: self-hosted
         env:
